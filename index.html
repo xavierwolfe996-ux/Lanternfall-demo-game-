@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Ninja Adventure RPG</title>
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Boot / loading -->
+  <section id="screenBoot" class="screen active"><div class="boot-card"><div class="logo-mark"></div><p id="bootText">Lighting the lanterns&hellip;</p></div></section>
+
+  <!-- Login / register -->
+  <section id="screenAuth" class="screen">
+    <div class="title-art"></div>
+    <div class="panel auth-panel">
+      <h1 class="game-title">Ninja Adventure</h1>
+      <p class="subtitle">A tale of lanterns, bamboo and spirits</p>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-mode="login" type="button">Sign in</button>
+        <button class="tab" data-mode="register" type="button">Create account</button>
+      </div>
+      <form id="authForm" autocomplete="on" novalidate>
+        <label>Username<input name="username" maxlength="24" autocomplete="username" required></label>
+        <label id="emailField" class="hidden">Email <span class="opt">(optional)</span><input name="email" type="email" maxlength="190" autocomplete="email"></label>
+        <label>Password<input name="password" type="password" maxlength="72" autocomplete="current-password" required></label>
+        <p id="authMessage" class="form-msg" role="alert"></p>
+        <button id="authSubmit" class="btn primary" type="submit">Enter the valley</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Character creation -->
+  <section id="screenCreate" class="screen">
+    <div class="title-art"></div>
+    <div class="panel create-panel">
+      <h2>Create your wayfarer</h2>
+      <div class="create-grid">
+        <div class="create-preview"><canvas id="previewCanvas" width="64" height="64"></canvas><div id="previewClass" class="preview-class"></div></div>
+        <div class="create-form">
+          <label>Name<input id="charName" maxlength="16" placeholder="Your hero's name"></label>
+          <div class="field-title">Path</div>
+          <div id="classList" class="choice-list"></div>
+          <div class="field-title">Look</div>
+          <div id="spriteList" class="swatch-list"></div>
+        </div>
+      </div>
+      <p id="createMessage" class="form-msg" role="alert"></p>
+      <div class="row"><button id="createBack" class="btn" type="button">Back</button><button id="createGo" class="btn primary" type="button">Begin adventure</button></div>
+    </div>
+  </section>
+
+  <!-- Title -->
+  <section id="screenTitle" class="screen">
+    <div class="title-art"></div>
+    <div class="panel title-panel">
+      <h1 class="game-title big">Ninja Adventure</h1>
+      <p id="titleWho" class="subtitle"></p>
+      <nav class="menu-list">
+        <button id="tContinue" class="btn primary" type="button">Continue</button>
+        <button id="tNew" class="btn" type="button">New Game</button>
+        <button id="tSettings" class="btn" type="button">Settings</button>
+        <button id="tLogout" class="btn" type="button">Logout</button>
+      </nav>
+      <p id="titleMsg" class="form-msg"></p>
+    </div>
+  </section>
+
+  <!-- Game -->
+  <section id="screenGame" class="screen">
+    <div id="stage"><canvas id="gameCanvas"></canvas></div>
+
+    <div id="hud">
+      <div id="hudHero" class="hud-card">
+        <div id="hudFace" class="face"></div>
+        <div class="hud-main">
+          <div class="hud-line"><b id="hudName"></b><span id="hudLevel"></span></div>
+          <div class="bar hp"><i id="barHp"></i><span id="txtHp"></span></div>
+          <div class="bar mp"><i id="barMp"></i><span id="txtMp"></span></div>
+          <div class="bar xp"><i id="barXp"></i><span id="txtXp"></span></div>
+        </div>
+        <div class="gold"><img id="goldIcon" alt=""><span id="hudGold">0</span></div>
+      </div>
+
+      <div id="hudTop">
+        <div id="hudArea" class="hud-pill"></div>
+        <button id="btnMenu" class="icon-btn" type="button" title="Menu (M)">&#9776;</button>
+      </div>
+
+      <div id="enemyBar" class="enemy-bar hidden"><div class="ename" id="eName"></div><div class="bar enemy"><i id="eHp"></i><span id="eTxt"></span></div></div>
+
+      <div id="tracker" class="tracker"></div>
+      <div id="prompt" class="prompt hidden"></div>
+      <div id="toasts"></div>
+
+      <div id="skillbar">
+        <div id="skillSlots"></div>
+        <button id="quickHeal" class="slot item" type="button" title="Use healing item (H)"><img alt=""><b>H</b><u></u></button>
+        <button id="quickMp" class="slot item" type="button" title="Use mana item (G)"><img alt=""><b>G</b><u></u></button>
+      </div>
+
+      <div id="touch" class="touch">
+        <div class="dpad">
+          <button data-dir="up" type="button">&#9650;</button><button data-dir="left" type="button">&#9664;</button>
+          <button data-dir="right" type="button">&#9654;</button><button data-dir="down" type="button">&#9660;</button>
+        </div>
+        <div class="tbtns"><button id="touchAct" type="button">E</button><button id="touchHit" type="button">&#9876;</button></div>
+      </div>
+    </div>
+
+    <!-- Dialog -->
+    <div id="dialog" class="dialog hidden">
+      <div id="dFace" class="face big"></div>
+      <div class="dbody">
+        <div class="dname" id="dName"></div>
+        <div class="dtext" id="dText"></div>
+        <div class="dopts" id="dOpts"></div>
+      </div>
+    </div>
+
+    <!-- Main menu (tabs) -->
+    <div id="menuModal" class="modal hidden">
+      <div class="panel big-panel">
+        <div class="modal-head">
+          <div class="tabs" id="menuTabs">
+            <button class="tab active" data-tab="inventory" type="button">Bag</button>
+            <button class="tab" data-tab="character" type="button">Hero</button>
+            <button class="tab" data-tab="quests" type="button">Quests</button>
+            <button class="tab" data-tab="skills" type="button">Skills</button>
+            <button class="tab" data-tab="settings" type="button">Settings</button>
+          </div>
+          <button class="icon-btn close" data-close="menuModal" type="button">&times;</button>
+        </div>
+        <div id="menuBody" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Shop -->
+    <div id="shopModal" class="modal hidden">
+      <div class="panel big-panel">
+        <div class="modal-head"><h3 id="shopTitle">Shop</h3><div class="shop-gold"><img id="shopGoldIcon" alt=""><span id="shopGold"></span></div>
+          <button class="icon-btn close" data-close="shopModal" type="button">&times;</button></div>
+        <div class="tabs" id="shopTabs"><button class="tab active" data-tab="buy" type="button">Buy</button><button class="tab" data-tab="sell" type="button">Sell</button></div>
+        <div id="shopBody" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Pause -->
+    <div id="pauseModal" class="modal hidden">
+      <div class="panel small-panel">
+        <h3>Paused</h3>
+        <nav class="menu-list">
+          <button id="pResume" class="btn primary" type="button">Resume</button>
+          <button id="pSave" class="btn" type="button">Save now</button>
+          <button id="pMenu" class="btn" type="button">Bag &amp; Quests</button>
+          <button id="pSettings" class="btn" type="button">Settings</button>
+          <button id="pTitle" class="btn" type="button">Title screen</button>
+          <button id="pLogout" class="btn" type="button">Logout</button>
+        </nav>
+      </div>
+    </div>
+
+    <div id="banner" class="banner hidden"></div>
+    <div id="fade" class="fade"></div>
+  </section>
+
+  <!-- Standalone settings (from title) -->
+  <div id="settingsModal" class="modal hidden">
+    <div class="panel small-panel"><div class="modal-head"><h3>Settings</h3><button class="icon-btn close" data-close="settingsModal" type="button">&times;</button></div><div id="settingsBody"></div></div>
+  </div>
+
+  <!-- Confirm / password modal -->
+  <div id="confirmModal" class="modal hidden">
+    <div class="panel small-panel">
+      <h3 id="confirmTitle"></h3><p id="confirmText"></p>
+      <input id="confirmInput" type="password" class="hidden" autocomplete="current-password" placeholder="Your password">
+      <p id="confirmMsg" class="form-msg"></p>
+      <div class="row"><button id="confirmNo" class="btn" type="button">Cancel</button><button id="confirmYes" class="btn danger" type="button">Confirm</button></div>
+    </div>
+  </div>
+</div>
+
+<noscript><p style="color:#fff;padding:2rem">This game needs JavaScript.</p></noscript>
+<script src="js/data.js"></script>
+<script src="js/maps.js"></script>
+<script src="js/server.js"></script>
+<script src="js/api.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/world.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
