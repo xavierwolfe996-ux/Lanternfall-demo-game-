@@ -73,6 +73,8 @@
     <div id="stage"><canvas id="gameCanvas"></canvas></div>
 
     <div id="hud">
+      <!-- Left column: hero card, enemy bar (portrait), quest tracker. Stacked in a flex column so they can never overlap. -->
+      <div id="hudLeft">
       <div id="hudHero" class="hud-card">
         <div id="hudFace" class="face"></div>
         <div class="hud-main">
@@ -84,14 +86,18 @@
         <div class="gold"><img id="goldIcon" alt=""><span id="hudGold">0</span></div>
       </div>
 
+      <div id="enemyBar" class="enemy-bar hidden"><div class="ename" id="eName"></div><div class="bar enemy"><i id="eHp"></i><span id="eTxt"></span></div></div>
+
+      <div id="trackerWrap" class="tracker-wrap hidden">
+        <button id="trackerToggle" class="tracker-toggle" type="button" aria-expanded="true" aria-controls="tracker"><span id="trackerLabel">Quests</span><i class="chev" aria-hidden="true"></i></button>
+        <div id="tracker" class="tracker"></div>
+      </div>
+      </div>
+
       <div id="hudTop">
         <div id="hudArea" class="hud-pill"></div>
         <button id="btnMenu" class="icon-btn" type="button" title="Menu (M)">&#9776;</button>
       </div>
-
-      <div id="enemyBar" class="enemy-bar hidden"><div class="ename" id="eName"></div><div class="bar enemy"><i id="eHp"></i><span id="eTxt"></span></div></div>
-
-      <div id="tracker" class="tracker"></div>
       <div id="prompt" class="prompt hidden"></div>
       <div id="toasts"></div>
 

@@ -144,10 +144,25 @@
     });
   }
 
+  // Quest tracker: on small screens the header toggles the list open/closed (choice is remembered on this device).
+  const TRACKER_KEY = 'na_tracker_collapsed';
+  function setTrackerCollapsed(on, remember) {
+    $('trackerWrap').classList.toggle('collapsed', !!on);
+    $('trackerToggle').setAttribute('aria-expanded', on ? 'false' : 'true');
+    if (remember) { try { localStorage.setItem(TRACKER_KEY, on ? '1' : '0'); } catch (e) { /* storage blocked: fine */ } }
+  }
+  try { setTrackerCollapsed(localStorage.getItem(TRACKER_KEY) === '1', false); } catch (e) { /* default: open */ }
+  $('trackerToggle').addEventListener('click', () => { NA.audio.sfx('move'); setTrackerCollapsed(!$('trackerWrap').classList.contains('collapsed'), true); });
+  // long-pressing a touch button should never open the browser's context menu / text selection
+  $('touch').addEventListener('contextmenu', (e) => e.preventDefault());
+
   function updateTracker() {
     const box = $('tracker');
     box.textContent = '';
-    ST().quests.filter((q) => q.state === 'active' || q.state === 'ready').sort((a, b) => a.sort - b.sort).slice(0, 3).forEach((q) => {
+    const list = ST().quests.filter((q) => q.state === 'active' || q.state === 'ready').sort((a, b) => a.sort - b.sort);
+    $('trackerWrap').classList.toggle('hidden', !list.length);
+    $('trackerLabel').textContent = list.length ? `Quests (${Math.min(list.length, 3)}${list.length > 3 ? '+' : ''})` : 'Quests';
+    list.slice(0, 3).forEach((q) => {
       const d = el('div', 'q' + (q.state === 'ready' ? ' ready' : ''));
       d.appendChild(el('b', '', q.title));
       d.appendChild(el('span', '', q.state === 'ready' ? `Return to ${DEF().npcs[q.turn_in_npc].name}` : `${q.progress}/${q.target}  ${q.summary.split('.')[0]}`));

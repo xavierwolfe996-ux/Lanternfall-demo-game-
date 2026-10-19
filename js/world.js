@@ -25,6 +25,7 @@
     W.canvas = canvas;
     W.ctx = canvas.getContext('2d');
     window.addEventListener('resize', W.resize);
+    window.addEventListener('orientationchange', () => setTimeout(W.resize, 250));   // some mobile browsers report stale sizes right after rotating
     W.resize();
   };
 
@@ -33,6 +34,8 @@
     const cw = W.canvas.clientWidth || window.innerWidth;
     const ch = W.canvas.clientHeight || window.innerHeight;
     W.scale = Math.max(2, Math.round(ch / 230));
+    // Portrait phones: scaling by height alone zooms in so far that only ~6 tiles fit across. Keep roughly 8+ tiles visible.
+    if (cw < ch) W.scale = Math.min(W.scale, Math.max(2, Math.floor(cw / 110)));
     W.vw = Math.ceil(cw / W.scale);
     W.vh = Math.ceil(ch / W.scale);
     W.canvas.width = W.vw;

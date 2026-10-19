@@ -69,6 +69,10 @@ ending screen is your own play time. Lanternfall Town and its epilogue quests co
 | Bag / Quests / Skills / Hero | I / J / K / M | menu button |
 | Pause | Esc or P | menu button |
 
+**On phones and tablets** the layout adapts to portrait and landscape: the hero card (HP / MP / XP), enemy bar and quest tracker stack down the
+left, the d-pad and **E** / sword buttons sit above the skill bar, and notches and home-bar areas are respected. Tap the **Quests** header to
+collapse or expand the quest tracker (the choice is remembered on that device). Portrait view is zoomed out a little so more of the map is visible.
+
 Suggested path: Master Sora (`!`) on Lantern Trail -> The Yellow Trial -> gate east to the Bamboo Grove -> Kenji's quests ->
 the gate east to the Misty Marsh (level 6) -> Sage Ren and the Slime King -> gate east to Shadow Ridge (level 8) -> Captain Daichi ->
 the Bamboo Tyrant (level 10 recommended, bring elixirs) = **the ending** -> the gate at the east end of the ridge -> Lanternfall Town and its epilogue.
