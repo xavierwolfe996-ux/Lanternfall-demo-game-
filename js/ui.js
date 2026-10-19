@@ -45,6 +45,32 @@
     p.classList.remove('hidden');
   };
 
+  /** 754 -> "12m 34s", 4000 -> "1h 06m 40s" */
+  U.fmtTime = function (sec) {
+    sec = Math.max(0, Math.floor(sec));
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60, pad = (n) => String(n).padStart(2, '0');
+    return h ? `${h}h ${pad(m)}m ${pad(s)}s` : `${m}m ${pad(s)}s`;
+  };
+
+  // -------------------------------------------------------------- ending
+  U.showEnding = function (ev) {
+    $('endText').textContent = `The ${ev.boss} has fallen. Peace returns to the valley, and the lanterns burn bright once more.`;
+    $('endTime').textContent = U.fmtTime(ev.seconds);
+    const st = $('endStats'); st.textContent = '';
+    [['Level', ev.level], ['Gold', ev.gold], ['Times defeated', ev.deaths]].forEach(([k, v]) => {
+      const d = el('div'); d.appendChild(document.createTextNode(k + ' ')); d.appendChild(el('b', '', String(v))); st.appendChild(d);
+    });
+    $('endHint').textContent = 'A gate has opened east of the lair, leading to Lanternfall Town. The story is not over!';
+    NA.world.setHeld([]);
+    NA.audio.music('Audio/Musics/8 - End Theme.ogg');
+    NA.audio.sfx('levelup');
+    $('endModal').classList.remove('hidden');
+  };
+  U.closeEnding = function () {
+    $('endModal').classList.add('hidden');
+    if (NA.S.area) NA.audio.music(NA.S.area.area.music);
+  };
+
   // -------------------------------------------------------------- HUD
   function setBar(id, txtId, cur, max, label) {
     $(id).style.width = (max ? Math.max(0, Math.min(100, (cur / max) * 100)) : 0) + '%';
@@ -176,7 +202,7 @@
   $('dialog').addEventListener('click', (e) => { if (U.typeTimer && U._skipType && e.target.tagName !== 'BUTTON') U._skipType(); });
 
   // -------------------------------------------------------------- generic modal helpers
-  const modals = ['menuModal', 'shopModal', 'pauseModal', 'settingsModal', 'confirmModal'];
+  const modals = ['menuModal', 'shopModal', 'pauseModal', 'settingsModal', 'confirmModal', 'endModal'];
   U.anyModal = () => modals.some((m) => !$(m).classList.contains('hidden')) || U.dialogOpen;
   U.open = (id) => { NA.world.setHeld([]); $(id).classList.remove('hidden'); NA.audio.sfx('open'); };
   U.close = (id) => { $(id).classList.add('hidden'); NA.audio.sfx('cancel'); };
@@ -255,7 +281,8 @@
     });
     const t = el('table', 'stats-table'); left.appendChild(t);
     [['Name', c.name], ['Path', c.class_name], ['Level', c.level], ['Experience', c.xp_next ? `${c.xp} / ${c.xp_next}` : 'MAX'], ['Max HP', s.stats.max_hp], ['Max MP', s.stats.max_mp],
-      ['Attack', s.stats.attack], ['Defense', s.stats.defense], ['Gold', c.gold], ['Story chapters', s.quests.filter((q) => q.kind === 'main' && q.state === 'complete').length + ' / ' + s.quests.filter((q) => q.kind === 'main').length]].forEach(([a, b]) => {
+      ['Attack', s.stats.attack], ['Defense', s.stats.defense], ['Gold', c.gold],
+      ['Play time', U.fmtTime(s.save.play_seconds || 0)], ['Game cleared', s.save.cleared ? (s.save.clear_seconds != null ? 'in ' + U.fmtTime(s.save.clear_seconds) : 'yes') : 'not yet'], ['Story chapters', s.quests.filter((q) => q.kind === 'main' && q.state === 'complete').length + ' / ' + s.quests.filter((q) => q.kind === 'main').length]].forEach(([a, b]) => {
       const tr = el('tr'); tr.appendChild(el('td', '', a)); tr.appendChild(el('td', '', String(b))); t.appendChild(tr);
     });
     const right = el('div'); wrap.appendChild(right);

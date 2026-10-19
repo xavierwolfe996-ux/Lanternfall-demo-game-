@@ -127,6 +127,8 @@
           if (ev.gold) NA.audio.sfx('coin');
           break;
         }
+        case 'area_unlocked': NA.ui.toast('New area unlocked: ' + ev.name, 'gold'); NA.audio.sfx('unlock'); break;
+        case 'game_cleared': setTimeout(() => NA.ui.showEnding(ev), 2200); break;
         case 'level_up': NA.ui.banner('LEVEL UP!', 'You reached level ' + ev.level); NA.audio.sfx('levelup'); break;
         case 'skill_unlocked': NA.ui.toast('New skill learned: ' + ev.name, 'gold'); break;
         case 'fled': NA.ui.toast('You slipped away from the fight.', ''); break;

@@ -11,7 +11,6 @@
     flame: { img: 'FX/Elemental/Flam/SpriteSheet.png', fw: 40, fh: 30, frames: 5, dur: 520, scale: 1.2 },
     aura: { img: 'FX/Magic/Aura/SpriteSheet.png', fw: 25, fh: 24, frames: 5, dur: 600, scale: 1.4 },
   };
-  const BOSS = { w: 62, h: 62, frames: 6 };
 
   const W = {
     canvas: null, ctx: null, scale: 3, vw: 384, vh: 216,
@@ -45,7 +44,7 @@
   W.loadArea = async function (data, ch) {
     W.map = data.map;
     W.area = data.area;
-    const sheets = Object.values(NA.tiles.sheets).concat(['Actor/Boss/GiantBamboo/Idle.png']);
+    const sheets = Object.values(NA.tiles.sheets);
     const chars = [`Actor/Character/${ch.sprite_key}/SpriteSheet.png`].concat(data.npcs.map((n) => n.sprite), data.spawns.map((s) => s.sprite));
     await NA.assets.preload(sheets.concat(chars, Object.values(FX).map((f) => f.img)));
     buildGround();
@@ -365,8 +364,9 @@
   function drawEnemy(c, e, now) {
     const flashing = e.flash > now;
     if (e.boss) {
-      const im = NA.assets.img('Actor/Boss/GiantBamboo/Idle.png');
+      const im = NA.assets.img(e.def.sprite);
       if (!NA.assets.ok(im)) return;
+      const BOSS = { w: e.def.boss_w || 62, h: e.def.boss_h || 62, frames: e.def.boss_frames || 6 };
       const fi = Math.floor(now / 160) % BOSS.frames;
       const x = e.px + 8 - BOSS.w / 2, y = e.py + 16 - BOSS.h + 6;
       c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(e.px + 8, e.py + 14, 20, 6, 0, 0, Math.PI * 2); c.fill();

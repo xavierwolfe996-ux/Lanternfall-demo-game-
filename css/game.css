@@ -214,3 +214,16 @@ input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(224,180,92,.
   #hudTop .hud-pill { display: none; }
 }
 @media (max-height: 520px) { .hud-card .bar.xp { display: none; } .dialog { padding: 8px; } .dialog .face.big { width: 56px; height: 56px; } .tracker { display: none; } }
+
+/* ------------------------------------------------------------- ending screen */
+.end-panel { width: min(560px, 96vw); text-align: center; padding: 26px 28px; background: linear-gradient(180deg, #5a3c26, #2a1a10 40%, #1a100a); box-shadow: 0 0 0 3px #000, 0 0 60px 10px rgba(224,180,92,.35); }
+.end-ribbon { display: inline-block; margin: -42px auto 8px; padding: 6px 18px; background: var(--gold); color: #2a1a0c; border: 3px solid #6e4818; border-radius: 4px; letter-spacing: 2px; font-size: 14px; }
+.end-title { margin: 6px 0 6px !important; font-size: 44px; color: var(--gold); text-shadow: 3px 3px 0 #000, 0 0 22px rgba(224,180,92,.6); }
+.end-text { margin: 0 0 14px; color: var(--paper); line-height: 1.4; }
+.end-time { margin: 10px 0; padding: 12px 10px; background: rgba(0,0,0,.35); border: 3px solid var(--gold-d); border-radius: 6px; }
+.end-time span { display: block; font-size: 13px; color: var(--muted); letter-spacing: 1px; }
+.end-time b { display: block; margin-top: 4px; font-weight: normal; font-size: 40px; color: var(--paper); text-shadow: 2px 2px 0 #000; }
+.end-stats { display: flex; justify-content: center; gap: 22px; margin: 8px 0; color: var(--muted); font-size: 14px; flex-wrap: wrap; }
+.end-stats b { color: var(--gold); font-weight: normal; }
+.end-hint { color: var(--good); font-size: 14px; margin: 8px 0 12px; }
+@media (max-width: 760px) { .end-title { font-size: 32px; } .end-time b { font-size: 30px; } }

@@ -29,9 +29,11 @@
   };
 
   M.setState = async function (state, opts) {
+    const prevUnlocked = S.state ? S.state.areas_unlocked.length : null;
     S.state = state;
     const areaChanged = S.area && state.character.area_key !== S.area.area.area_key;
     if ((opts && opts.reloadArea) || areaChanged) await M.reloadArea();
+    else if (prevUnlocked !== null && state.areas_unlocked.length !== prevUnlocked && S.area) await M.refreshPortals();   // new gate just opened
     NA.audio.configure(state.settings);
     NA.ui.updateHud();
     NA.ui.refreshShop();
@@ -138,7 +140,8 @@
   function showTitle() {
     NA.audio.music('Audio/Musics/38 - Intro.ogg');
     const c = S.state.character;
-    $('titleWho').textContent = `${c.name} - Level ${c.level} ${c.class_name}`;
+    const sv = S.state.save || {};
+    $('titleWho').textContent = `${c.name} - Level ${c.level} ${c.class_name}` + (sv.cleared ? (sv.clear_seconds != null ? `  |  Cleared in ${NA.ui.fmtTime(sv.clear_seconds)}` : '  |  Game cleared') : '');
     say('titleMsg', '');
     show('screenTitle');
   }
@@ -261,6 +264,7 @@
     NA.ui.dialog(info, r.text, opts);
   }
 
+  M.refreshPortals = refreshPortals;
   async function refreshPortals() {
     try { const d = await NA.api.call('area'); S.area.portals = d.portals; NA.world.portals = d.portals; } catch (e) { /* ignore */ }
   }
@@ -309,11 +313,14 @@
     try { const r = await NA.api.call('save', { pos: M.pos(), play_seconds: 0 }); NA.ui.toast(r.message, 'good'); NA.audio.sfx('ok'); }
     catch (e) { NA.ui.toast(e.message, 'bad'); }
   });
-  $('pTitle').addEventListener('click', async () => {
+  M.toTitle = async function () {
     await heartbeat(true);
-    NA.ui.close('pauseModal'); NA.world.stop(); NA.combat.reset();
+    NA.world.stop(); NA.combat.reset();
     await loadAll(); showTitle();
-  });
+  };
+  $('pTitle').addEventListener('click', async () => { NA.ui.close('pauseModal'); await M.toTitle(); });
+  $('endKeep').addEventListener('click', () => { NA.ui.closeEnding(); NA.audio.sfx('ok'); NA.ui.toast('The new gate is at the east end of Shadow Ridge.', 'gold'); });
+  $('endTitle').addEventListener('click', async () => { NA.ui.closeEnding(); await M.toTitle(); });
   $('pLogout').addEventListener('click', () => logout());
   $('btnMenu').addEventListener('click', () => NA.ui.openMenu());
   $('quickHeal').addEventListener('click', () => M.useItem($('quickHeal').dataset.item));

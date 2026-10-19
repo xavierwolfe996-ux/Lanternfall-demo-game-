@@ -36,6 +36,23 @@
   function sessionUid() { try { const v = root.sessionStorage.getItem(SESSION_KEY); return v ? parseInt(v, 10) : null; } catch (e) { return null; } }
   function setSession(uid) { try { if (uid) root.sessionStorage.setItem(SESSION_KEY, String(uid)); else root.sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ } }
 
+  /** Bring older saves up to date (new fields, and credit for a boss that was already defeated). */
+  function migrate(P) {
+    P.kills = P.kills || {};
+    P.deaths = P.deaths || 0;
+    Object.values(D.enemy_spawns).forEach((sp) => {
+      const e = D.enemy_defs[sp.enemy_key];
+      if (e.is_boss && P.spawns[sp.spawn_id] && !P.kills[e.enemy_key]) P.kills[e.enemy_key] = 1;
+    });
+    Object.values(D.enemy_defs).forEach((e) => {
+      if (e.is_boss && P.kills[e.enemy_key]) {
+        if (e.unlock_area && !P.areas.includes(e.unlock_area)) P.areas.push(e.unlock_area);
+        if (e.ends_game && P.save.cleared === undefined) { P.save.cleared = true; P.save.clear_seconds = null; }
+      }
+    });
+    if (P.save.cleared === undefined) { P.save.cleared = false; P.save.clear_seconds = null; }
+  }
+
   /** Run fn with the logged-in player's record. All changes are written only if fn succeeds. */
   function withPlayer(fn, needChar) {
     const uid = sessionUid();
@@ -44,13 +61,14 @@
     if (!user) throw new ApiError('Please sign in again.', 401);
     const P = db.players[uid] || null;
     if (needChar !== false && !P) throw new ApiError('No character yet.', 409);
+    if (P) migrate(P);
     const result = fn(P, db, user);
     saveDb(db);
     return result;
   }
 
   // ------------------------------------------------------------------ rules
-  const xpNeeded = (lv) => 20 * lv + 10 * (lv - 1) * lv;
+  const xpNeeded = (lv) => 25 * lv + 12 * (lv - 1) * lv;
   const dist = (x1, y1, x2, y2) => Math.abs(x1 - x2) + Math.abs(y1 - y2);
   const mapOf = (areaKey) => {
     const a = D.area_defs[areaKey];
@@ -142,6 +160,11 @@
   }
 
   // ------------------------------------------------------------------ quests
+  /** A boss only ever dies once, so killing it BEFORE taking the quest still counts. */
+  function bossCredit(P, enemyKey) {
+    const e = D.enemy_defs[enemyKey];
+    return e && e.is_boss ? (P.kills[enemyKey] || 0) : 0;
+  }
   function questStates(P) {
     const out = {};
     Object.values(D.quest_defs).forEach((q) => {
@@ -149,7 +172,8 @@
       let state = 'locked', progress = 0;
       if (p && p.status === 'complete') { state = 'complete'; progress = q.target_count; }
       else if (p) {
-        progress = Math.min(q.objective_type === 'collect' ? itemCount(P, q.target_key) : p.progress, q.target_count);
+        const have = q.objective_type === 'collect' ? itemCount(P, q.target_key) : Math.max(p.progress, bossCredit(P, q.target_key));
+        progress = Math.min(have, q.target_count);
         state = progress >= q.target_count ? 'ready' : 'active';
       } else {
         const preDone = !q.prerequisite || (P.quests[q.prerequisite] && P.quests[q.prerequisite].status === 'complete');
@@ -242,6 +266,7 @@
       return {
         spawn_id: s.spawn_id, enemy_key: s.enemy_key, x: s.x, y: s.y, respawn_in: wait, respawn_seconds: s.respawn_seconds, name: e.name, sprite_kind: e.sprite_kind,
         sprite: e.sprite_path, face: e.face_path, level: e.level, max_hp: e.max_hp, is_boss: !!e.is_boss,
+        boss_w: e.boss_w || 62, boss_h: e.boss_h || 62, boss_frames: e.boss_frames || 6,
       };
     });
     return {
@@ -269,6 +294,7 @@
 
   function combatDefeat(P, events) {
     P.combat = null;
+    P.deaths = (P.deaths || 0) + 1;
     const loss = Math.floor(P.char.gold * DEATH_LOSS / 100);
     addGold(P, -loss, 'death_penalty', 'Defeated in battle');
     const cp = P.save;
@@ -315,10 +341,23 @@
         drops.push({ item_key: d.item, name: D.item_defs[d.item].name, quantity: added, bag_full: added === 0 });
       }
     });
+    P.kills[e.enemy_key] = (P.kills[e.enemy_key] || 0) + 1;
     questOnKill(P, e.enemy_key);
     const xpEv = grantXp(P, e.xp_reward);
     events.push({ type: 'victory', enemy: e.name, spawn_id: s.spawn_id, xp: e.xp_reward, gold, drops });
     xpEv.forEach((x) => events.push(x));
+    if (e.unlock_area && !P.areas.includes(e.unlock_area)) {
+      P.areas.push(e.unlock_area);
+      events.push({ type: 'area_unlocked', name: D.area_defs[e.unlock_area].name });
+    }
+    if (e.ends_game && !P.save.cleared) {
+      // play time so far = saved seconds + the few seconds since the last auto-save tick
+      const extra = Math.min(10, Math.max(0, Math.floor((now() - P.save.last_saved_at) / 1000)));
+      P.save.cleared = true;
+      P.save.clear_seconds = P.save.play_seconds + extra;
+      touchSave(P, 0, true);
+      events.push({ type: 'game_cleared', seconds: P.save.clear_seconds, level: P.char.level, gold: P.char.gold, deaths: P.deaths, boss: e.name });
+    }
   }
 
   function combatAction(P, body) {
@@ -437,7 +476,7 @@
     const q = D.quest_defs[body.quest_key];
     const st = questStates(P);
     if (!q || q.giver_npc !== npc.npc_key || !st[q.quest_key] || st[q.quest_key].state !== 'available') throw new ApiError('That quest is not available.', 409);
-    P.quests[q.quest_key] = { status: 'active', progress: 0 };
+    P.quests[q.quest_key] = { status: 'active', progress: q.objective_type === 'kill' ? Math.min(bossCredit(P, q.target_key), q.target_count) : 0 };
     return { state: fullState(P), message: 'Quest accepted: ' + q.title, text: q.dialog_active };
   }
   function questComplete(P, body) {
@@ -601,8 +640,8 @@
       const np = {
         char: { name, class_key: cls.class_key, sprite_key: body.sprite_key, level: 1, xp: 0, hp: bs.max_hp, mp: bs.max_mp, gold: 0, story_stage: 0, area_key: a.area_key, pos_x: a.start_x, pos_y: a.start_y, direction: 'down', last_move_ms: now() },
         inv: {}, equip: { weapon: 'wooden_blade', armor: 'cloth_garb', accessory: null }, quests: {}, areas: ['lantern_trail'], skills: [], spawns: {}, combat: null,
-        settings: { music_on: true, music_volume: 40, sfx_on: true, sfx_volume: 60 },
-        save: { checkpoint_area: a.area_key, checkpoint_x: a.shrine_x, checkpoint_y: a.shrine_y + 1, play_seconds: 0, save_count: 1, last_saved_at: now() }, tx: [],
+        settings: { music_on: true, music_volume: 40, sfx_on: true, sfx_volume: 60 }, kills: {}, deaths: 0,
+        save: { checkpoint_area: a.area_key, checkpoint_x: a.shrine_x, checkpoint_y: a.shrine_y + 1, play_seconds: 0, save_count: 1, last_saved_at: now(), cleared: false, clear_seconds: null }, tx: [],
       };
       unlockSkills(np, 1);
       addItem(np, 'healing_tonic', 2, 'starter', 'Starting kit');

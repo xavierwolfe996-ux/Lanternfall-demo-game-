@@ -28,8 +28,9 @@
   const NATURE = 'Backgrounds/Tilesets/TilesetNature.png';
   const ELEMENT = 'Backgrounds/Tilesets/TilesetElement.png';
   const WATER = 'Backgrounds/Tilesets/TilesetWater.png';
+  const HOUSE = 'Backgrounds/Tilesets/TilesetHouse.png';
   NA.tiles = {
-    sheets: { field: FIELD, nature: NATURE, element: ELEMENT, water: WATER },
+    sheets: { field: FIELD, nature: NATURE, element: ELEMENT, water: WATER, house: HOUSE },
     ground: {
       g: [[FIELD, 16, 64], [FIELD, 16, 64], [FIELD, 16, 64], [FIELD, 48, 48]],
       d: [[FIELD, 16, 112], [FIELD, 16, 112], [FIELD, 16, 112], [FIELD, 48, 96]],
@@ -42,6 +43,12 @@
       grayrock: [NATURE, 256, 80, 64, 48], brownrock: [NATURE, 192, 80, 64, 48],
       bush: [NATURE, 0, 160, 16, 16], flower: [NATURE, 0, 176, 16, 16], flower2: [NATURE, 16, 176, 16, 16],
       tuft: [NATURE, 48, 160, 16, 16], tuft2: [NATURE, 64, 160, 16, 16], sign: [ELEMENT, 80, 32, 16, 16],
+      barrel: [ELEMENT, 16, 0, 16, 16], crate: [ELEMENT, 0, 0, 16, 16],
+      // town buildings and market props (TilesetHouse)
+      h1: [HOUSE, 0, 0, 64, 48], h2: [HOUSE, 64, 0, 64, 48], h3: [HOUSE, 128, 0, 64, 48], redhouse: [HOUSE, 192, 0, 64, 48],
+      shopA: [HOUSE, 256, 0, 48, 48], greenhouse: [HOUSE, 304, 0, 64, 48], stone: [HOUSE, 368, 0, 48, 48],
+      torii: [HOUSE, 0, 80, 48, 34], stall: [HOUSE, 256, 256, 80, 48], baskets: [HOUSE, 256, 192, 48, 32],
+      flag: [HOUSE, 352, 320, 16, 32], lamp: [HOUSE, 224, 64, 16, 32],
     },
   };
 

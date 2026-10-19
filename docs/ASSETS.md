@@ -7,6 +7,7 @@ Paths below are relative to that folder. The paths are listed in `js/data.js`; t
 | Use | Asset(s) | How it is read |
 |---|---|---|
 | Ground | `Backgrounds/Tilesets/TilesetField.png` (flat tiles at 16,64 / 16,112 / 16,16 and variants), `TilesetWater.png` (16,16) | 16x16 slices drawn once into an offscreen canvas |
+| Town buildings, banners, stalls, torii gate | `TilesetHouse.png` | rectangle table in `js/assets.js` (`NA.tiles.props`) |
 | Trees, rocks, bushes, flowers | `TilesetNature.png` | rectangle table in `js/assets.js` (`NA.tiles.props`) |
 | Signposts | `TilesetElement.png` | same table |
 | Player and NPC sprites | `Actor/Character/<Name>/SpriteSheet.png` (64x112) | columns = direction (down, up, left, right), rows = frames (0-3 walk, 4 attack) |
@@ -17,7 +18,7 @@ Paths below are relative to that folder. The paths are listed in `js/data.js`; t
 | Item icons | `Items/...` and `Ui/Skill Icon/...` | `<img>` with pixelated scaling |
 | Skill icons | `Ui/Skill Icon/Spell/*`, `Items & Weapon/Kunai.png` | skill bar |
 | UI font | `Ui/Font/NormalFont.ttf` | `@font-face` in `css/game.css` |
-| Music | `Audio/Musics/{4 - Village, 37 - Dark Forest, 28 - Tension, 38 - Intro}.ogg` | one looping track per area / title |
+| Music | `Audio/Musics/{4 - Village, 37 - Dark Forest, 28 - Tension, 33 - Calm Village, 38 - Intro, 8 - End Theme}.ogg` | one looping track per area / title |
 | SFX | `Audio/Sounds/*` and `Audio/Jingles/*` (list in `js/audio.js`) | played on events |
 
 Fallbacks: if an image fails to load the engine skips drawing it (nothing crashes); if a sound fails it stays silent.
